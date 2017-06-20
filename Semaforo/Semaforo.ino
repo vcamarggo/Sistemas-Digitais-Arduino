@@ -42,4 +42,8 @@ void loop() {
   delay(3000);
   
   digitalWrite(AMARELO2, LOW);   
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 9bdc0edd572180097816a2b56cfdf9cdb9327d39

@@ -16,4 +16,8 @@ void loop()
   caractereEnviado = caractereEnviado + 1;          // incrementa caractere
 
   delay(400);
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 9bdc0edd572180097816a2b56cfdf9cdb9327d39

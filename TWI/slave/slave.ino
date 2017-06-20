@@ -42,4 +42,8 @@ void loop() {
 void requestEvent() {
   Wire.write(" I'm slave ");      // Escreve uma mensagem qualquer,
                                   // sua mudança altera a expectativa de recepção de bytes do master
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 9bdc0edd572180097816a2b56cfdf9cdb9327d39

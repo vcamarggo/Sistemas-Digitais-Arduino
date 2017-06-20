@@ -15,4 +15,8 @@ void loop() {
   }
   Serial.println(caractereRecebido);      // printa caractere recebido
   delay(400);
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 9bdc0edd572180097816a2b56cfdf9cdb9327d39
