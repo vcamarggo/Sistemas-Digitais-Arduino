@@ -4,9 +4,9 @@
 
 #define SS_PIN 10     // Pino do slave select
 #define RST_PIN 9     // Pino do reset
-#define SAIDA_RELAY 8
-#define LED_VERMELHO 7
-#define LED_VERDE 6
+#define SAIDA_RELAY 8 // Pino do relay
+#define LED_VERMELHO 7 // Pino da LED Vermelha
+#define LED_VERDE 6    // Pino da LED Verde
 
 MFRC522 leitor(SS_PIN, RST_PIN); // Classe e variavel do leitor MFRC522
 
@@ -18,7 +18,7 @@ void setup() {
   Serial.begin(9600);
   SPI.begin(); // Init SPI bus
   leitor.PCD_Init(); // Init leitor
-  piscaLedAmbas(2000);
+  piscaLedAmbas(2000); //Pisca LEDs para indicar inicio do sistema
 }
 
 void loop() {
@@ -32,24 +32,20 @@ void loop() {
 
   if (encontraID(cartaoLido)) {
     Serial.println("Cartao cadastrado. Acesso liberado.");
-    piscaLedIndividual(LED_VERDE, 1500);
+    piscaLedIndividual(LED_VERDE, 1500); // Pisca LEDs para indicar acesso liberado
     abrirPorta();
   } else {
     Serial.println("Cartao nao cadastrado. Favor inserir o cartao mestre");
-    piscaLedIndividual(LED_VERMELHO, 1000);
+    piscaLedIndividual(LED_VERMELHO, 1000); // Pisca LEDs para indicar acesso proibido
   }
 
 }
 
 void trataMaster() {
-  piscaLedIndividual(LED_VERDE, 500);
-
+  piscaLedIndividual(LED_VERDE, 500); // Pisca LEDs 3x para indicar modo-mestre
   delay(300);
-
   piscaLedIndividual(LED_VERDE, 500);
-
   delay(300);
-
   piscaLedIndividual(LED_VERDE, 500);
 
   Serial.println("Insira o cartao nao-mestre: ");
@@ -61,7 +57,7 @@ void trataMaster() {
     apagaID(cartaoLido);
   }
 
-  piscaLedAmbas(600);
+  piscaLedAmbas(600); // Pisca LEDs para indicar fim do modo-mestre
 }
 
 void piscaLedIndividual(int LED, int millisegundos) {
@@ -79,36 +75,36 @@ void piscaLedAmbas(int millisegundos) {
 }
 
 void abrirPorta() {
-  digitalWrite(SAIDA_RELAY, HIGH); // ativa rele, abre a trava solenoide
-  delay(2000);           // espera 3 segundos
-  digitalWrite(SAIDA_RELAY, LOW);  // desativa rele, fecha a trava solenoide
+  digitalWrite(SAIDA_RELAY, HIGH); // ativa rele, abre a trava
+  delay(2000);           // espera 2 segundos
+  digitalWrite(SAIDA_RELAY, LOW);  // desativa rele, fecha a trava
 }
 
-uint8_t getID() {
-  if ( ! leitor.PICC_IsNewCardPresent()) {
+uint8_t getID() { // Le o ID do cartao no modulo RFID
+  if ( ! leitor.PICC_IsNewCardPresent()) { //Se nao ha cartao no leitor
     return 0;
   }
-  if ( ! leitor.PICC_ReadCardSerial()) {
+  if ( ! leitor.PICC_ReadCardSerial()) { //Se cartao nao e do padrao esperado
     return 0;
   }
   Serial.print("ID: ");
   for ( uint8_t i = 0; i < 4; i++) {
-    cartaoLido[i] = leitor.uid.uidByte[i];
+    cartaoLido[i] = leitor.uid.uidByte[i]; //Le em hexadecimal
     Serial.print(cartaoLido[i], HEX);
   }
   Serial.println("");
-  leitor.PICC_HaltA(); // Stop reading
+  leitor.PICC_HaltA(); // termina a leitura
   return 1;
 }
 
-void leID( uint8_t number ) {
+void leID( uint8_t number ) { //Le ID da EEPROM
   uint8_t start = (number * 4 ) + 1;
   for ( uint8_t i = 0; i < 4; i++ ) {
     storedCard[i] = EEPROM.read(start + i);
   }
 }
 
-void escreveID( byte a[] ) {
+void escreveID( byte a[] ) { //Escreve ID na EEPROM
   if ( !encontraID( a ) ) {
     uint8_t num = EEPROM.read(0);
     uint8_t start = ( num * 4 ) + 1;
@@ -124,7 +120,7 @@ void escreveID( byte a[] ) {
   }
 }
 
-boolean encontraID( byte find[] ) {
+boolean encontraID( byte find[] ) { //Encontra se um ID esta na EEPROM
   uint8_t count = EEPROM.read(0);
   for ( uint8_t i = 0; i <= count; i++ ) {
     leID(i);
@@ -136,8 +132,7 @@ boolean encontraID( byte find[] ) {
 }
 
 
-///////////////////////////////////////// Check Bytes   ///////////////////////////////////
-boolean testaChaves ( byte a[], byte b[] ) {
+boolean testaChaves ( byte a[], byte b[] ) { //testa se dois IDs são iguais
   boolean match = true;
   if ( a[0] != 0 )
     for ( uint8_t k = 0; k < 4; k++ ) {
@@ -147,8 +142,7 @@ boolean testaChaves ( byte a[], byte b[] ) {
   return match;
 }
 
-///////////////////////////////////////// Remove ID from EEPROM   ///////////////////////////////////
-void apagaID( byte a[] ) {
+void apagaID( byte a[] ) { //Remove ID da EEPROM
   if ( !encontraID( a ) ) {
     Serial.println(F("Falha! Ha um problema na ID ou na EEPROM"));
   }
@@ -159,23 +153,22 @@ void apagaID( byte a[] ) {
     int looping;
     int j;
     int count = EEPROM.read(0);
-    slot = encontraIDSLOT( a );
+    slot = encontraIDSLOT( a ); //Encontra o slot que o ID esta alocado na EEPROM
     start = (slot * 4) + 1;
     looping = ((num - slot) * 4);
     num--;
     EEPROM.write( 0, num );
-    for ( j = 0; j < looping; j++ ) {
+    for ( j = 0; j < looping; j++ ) { //Grava os dados do prox no slot anterior, ate atingir o ultimo registro
       EEPROM.write( start + j, EEPROM.read(start + 4 + j));
     }
-    for ( int k = 0; k < 4; k++ ) {
+    for ( int k = 0; k < 4; k++ ) { ///Grava zeros na ultima posicao restante
       EEPROM.write( start + j + k, 0);
     }
     Serial.println(F("ID removido da EEPROM"));
   }
 }
 
-///////////////////////////////////////// Find Slot   ///////////////////////////////////
-int encontraIDSLOT( byte find[] ) {
+int encontraIDSLOT( byte find[] ) { //Encontra o slot que o ID esta alocado na EEPROM
   int count = EEPROM.read(0);
   for ( int i = 0; i <= count; i++ ) {
     leID(i);
@@ -185,8 +178,7 @@ int encontraIDSLOT( byte find[] ) {
   }
 }
 
-////////////////////// Check cartaoLido IF is cartaoMestre   ///////////////////////////////////
-boolean eMestre( byte test[] ) {
+boolean eMestre( byte test[] ) { //Verifica se cartaoLido e cartaoMestre
   return testaChaves( test, cartaoMestre );
 }
 
